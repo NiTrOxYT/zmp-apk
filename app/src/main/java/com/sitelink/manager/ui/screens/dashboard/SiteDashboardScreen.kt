@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,7 +25,10 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Computer
 import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Hotel
+import androidx.compose.material3.SuggestionChip
+import com.sitelink.manager.domain.validation.InputValidator
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lock
@@ -107,6 +111,7 @@ fun SiteDashboardScreen(
     val hostVerificationEvent by viewModel.hostVerificationEvent.collectAsState()
 
     var showUpdatePasswordDialog by remember { mutableStateOf(false) }
+    var showEditPortsDialog by remember { mutableStateOf(false) }
 
     // Listen for navigation / browser launch events
     LaunchedEffect(Unit) {
@@ -194,6 +199,92 @@ fun SiteDashboardScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showUpdatePasswordDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showEditPortsDialog && site != null) {
+        val currentSite = site!!
+        var editedPortsText by remember(currentSite.portalPorts) { mutableStateOf(currentSite.portalPorts) }
+
+        AlertDialog(
+            onDismissRequest = { showEditPortsDialog = false },
+            icon = { Icon(Icons.Default.Dns, contentDescription = null, tint = AccentZmpBlue) },
+            title = {
+                Text(
+                    text = "Configure Portal Ports",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleMedium
+                )
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Customize the web portal ports forwarded for ${currentSite.name}.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = editedPortsText,
+                        onValueChange = { editedPortsText = it },
+                        label = { Text("Portal Ports") },
+                        placeholder = { Text("e.g. 8080, 8082, 8083") },
+                        supportingText = { Text("Comma-separated ports (1–65535)") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Quick Presets:",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SuggestionChip(
+                            onClick = { editedPortsText = "8080, 8082, 8083" },
+                            label = { Text("Default") }
+                        )
+                        SuggestionChip(
+                            onClick = {
+                                val list = InputValidator.parsePortsString(editedPortsText).toMutableList()
+                                if (!list.contains(8085)) list.add(8085)
+                                editedPortsText = list.joinToString(", ")
+                            },
+                            label = { Text("+ 8085") }
+                        )
+                        SuggestionChip(
+                            onClick = {
+                                val list = InputValidator.parsePortsString(editedPortsText).toMutableList()
+                                if (!list.contains(80)) list.add(80)
+                                editedPortsText = list.joinToString(", ")
+                            },
+                            label = { Text("+ 80") }
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.updatePortalPorts(editedPortsText)
+                        showEditPortsDialog = false
+                    }
+                ) {
+                    Text("Save Ports")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditPortsDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -417,14 +508,38 @@ fun SiteDashboardScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 2. Section: ZMP PORTAL (Ports 8080, 8082, 8083)
-            Text(
-                text = "ZMP PORTAL FORWARDING",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = AccentZmpBlue
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            // 2. Section: ZMP PORTAL FORWARDING
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "ZMP PORTAL FORWARDING",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = AccentZmpBlue
+                )
+                TextButton(
+                    onClick = { showEditPortsDialog = true },
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Ports",
+                        modifier = Modifier.size(16.dp),
+                        tint = AccentZmpBlue
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Edit Ports",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = AccentZmpBlue
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "Tunnels loopback port 127.0.0.1 directly through Office SSH to site /zmp/login.do",
                 style = MaterialTheme.typography.bodySmall,
@@ -433,20 +548,46 @@ fun SiteDashboardScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            listOf(8080, 8082, 8083).forEach { port ->
-                val tunnelKey = "${currentSite.id}_$port"
-                val activeTunnel = activeTunnels[tunnelKey]
+            val portalPorts = currentSite.parsePortalPorts()
+            if (portalPorts.isEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "No portal ports configured for this site.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(onClick = { showEditPortsDialog = true }) {
+                            Text("Configure Ports")
+                        }
+                    }
+                }
+            } else {
+                portalPorts.forEach { port ->
+                    val tunnelKey = "${currentSite.id}_$port"
+                    val activeTunnel = activeTunnels[tunnelKey]
 
-                ZmpPortCard(
-                    port = port,
-                    tunnel = activeTunnel,
-                    onConnect = { viewModel.openZmp(port, context) },
-                    onOpenBrowser = { tunnel ->
-                        viewModel.launchUrlInCustomTab(context, tunnel.localUrl)
-                    },
-                    onDisconnect = { viewModel.disconnectZmp(port) }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                    ZmpPortCard(
+                        port = port,
+                        tunnel = activeTunnel,
+                        onConnect = { viewModel.openZmp(port, context) },
+                        onOpenBrowser = { tunnel ->
+                            viewModel.launchUrlInCustomTab(context, tunnel.localUrl)
+                        },
+                        onDisconnect = { viewModel.disconnectZmp(port) }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))

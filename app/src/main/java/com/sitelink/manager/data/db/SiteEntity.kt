@@ -19,6 +19,7 @@ data class SiteEntity(
     val ipAddress: String,
     val description: String = "",
     val notes: String = "",
+    val portalPorts: String = Site.DEFAULT_PORTAL_PORTS,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -28,6 +29,7 @@ data class SiteEntity(
         ipAddress = ipAddress,
         description = description,
         notes = notes,
+        portalPorts = portalPorts,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -39,6 +41,7 @@ data class SiteEntity(
             ipAddress = site.ipAddress.trim(),
             description = site.description.trim(),
             notes = site.notes.trim(),
+            portalPorts = site.portalPorts.trim().ifEmpty { Site.DEFAULT_PORTAL_PORTS },
             createdAt = site.createdAt,
             updatedAt = site.updatedAt
         )

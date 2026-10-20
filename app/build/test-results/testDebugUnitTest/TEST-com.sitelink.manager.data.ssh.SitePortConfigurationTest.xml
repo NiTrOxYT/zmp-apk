@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.sitelink.manager.data.ssh.SitePortConfigurationTest" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-10-20T13:20:57" hostname="NITROX" time="0.089">
+  <properties/>
+  <testcase name="testSiteEntityToAndFromDomainPreservesCustomPorts" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.072"/>
+  <testcase name="testInvalidOrEmptyPortalPortsFallsBackToDefault" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.002"/>
+  <testcase name="testDefaultSitePortalPorts" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.0"/>
+  <testcase name="testCustomPortalPortsPerSite" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.0"/>
+  <testcase name="testTunnelKeysForCustomSitePorts" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.012"/>
+  <testcase name="testCustomSinglePortPerSite" classname="com.sitelink.manager.data.ssh.SitePortConfigurationTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

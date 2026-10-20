@@ -20,6 +20,33 @@ object InputValidator {
         return port in 1..65535
     }
 
+    /**
+     * Parses a delimited string (comma, space, semicolon, newline) of port numbers.
+     * Returns a distinct list of valid ports (1..65535).
+     */
+    fun parsePortsString(input: String): List<Int> {
+        return input.split(",", " ", ";", "\n", "\t")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .mapNotNull { it.toIntOrNull() }
+            .filter { isValidPort(it) }
+            .distinct()
+    }
+
+    /**
+     * Checks if the given string contains at least one valid port and all tokens are valid port numbers.
+     */
+    fun isValidPortsString(input: String): Boolean {
+        val tokens = input.split(",", " ", ";", "\n", "\t")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        if (tokens.isEmpty()) return false
+        return tokens.all { token ->
+            val p = token.toIntOrNull()
+            p != null && isValidPort(p)
+        }
+    }
+
     fun isValidSiteName(name: String): Boolean {
         val trimmed = name.trim()
         return trimmed.isNotEmpty() && trimmed.length <= 100

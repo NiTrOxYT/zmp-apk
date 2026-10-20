@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-20T12:49:09" hostname="NITROX" time="0.239">
+<testsuite name="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-20T13:20:57" hostname="NITROX" time="0.257">
   <properties/>
-  <testcase name="testOuterSshFailureClassification" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.02"/>
-  <testcase name="testTerminalBufferPreservationAcrossNavigation" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.016"/>
+  <testcase name="testOuterSshFailureClassification" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.018"/>
+  <testcase name="testTerminalBufferPreservationAcrossNavigation" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.007"/>
   <testcase name="testSessionReuseCondition" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.0"/>
   <testcase name="testOuterSshKeepaliveConfiguration" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.001"/>
-  <testcase name="testExitCodeClassification" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.003"/>
-  <testcase name="testNestedSshCommandWithKeepaliveParameters" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.009"/>
-  <testcase name="testForegroundServiceLifecycleLogic" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.189"/>
+  <testcase name="testExitCodeClassification" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.004"/>
+  <testcase name="testNestedSshCommandWithKeepaliveParameters" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.012"/>
+  <testcase name="testForegroundServiceLifecycleLogic" classname="com.sitelink.manager.data.ssh.SshKeepaliveAndLifecycleTest" time="0.212"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -46,7 +46,7 @@ public final class SiteDao_Impl implements SiteDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "INSERT OR ABORT INTO `sites` (`id`,`name`,`ipAddress`,`description`,`notes`,`createdAt`,`updatedAt`) VALUES (nullif(?, 0),?,?,?,?,?,?)";
+        return "INSERT OR ABORT INTO `sites` (`id`,`name`,`ipAddress`,`description`,`notes`,`portalPorts`,`createdAt`,`updatedAt`) VALUES (nullif(?, 0),?,?,?,?,?,?,?)";
       }
 
       @Override
@@ -57,8 +57,9 @@ public final class SiteDao_Impl implements SiteDao {
         statement.bindString(3, entity.getIpAddress());
         statement.bindString(4, entity.getDescription());
         statement.bindString(5, entity.getNotes());
-        statement.bindLong(6, entity.getCreatedAt());
-        statement.bindLong(7, entity.getUpdatedAt());
+        statement.bindString(6, entity.getPortalPorts());
+        statement.bindLong(7, entity.getCreatedAt());
+        statement.bindLong(8, entity.getUpdatedAt());
       }
     };
     this.__deletionAdapterOfSiteEntity = new EntityDeletionOrUpdateAdapter<SiteEntity>(__db) {
@@ -78,7 +79,7 @@ public final class SiteDao_Impl implements SiteDao {
       @Override
       @NonNull
       protected String createQuery() {
-        return "UPDATE OR ABORT `sites` SET `id` = ?,`name` = ?,`ipAddress` = ?,`description` = ?,`notes` = ?,`createdAt` = ?,`updatedAt` = ? WHERE `id` = ?";
+        return "UPDATE OR ABORT `sites` SET `id` = ?,`name` = ?,`ipAddress` = ?,`description` = ?,`notes` = ?,`portalPorts` = ?,`createdAt` = ?,`updatedAt` = ? WHERE `id` = ?";
       }
 
       @Override
@@ -89,9 +90,10 @@ public final class SiteDao_Impl implements SiteDao {
         statement.bindString(3, entity.getIpAddress());
         statement.bindString(4, entity.getDescription());
         statement.bindString(5, entity.getNotes());
-        statement.bindLong(6, entity.getCreatedAt());
-        statement.bindLong(7, entity.getUpdatedAt());
-        statement.bindLong(8, entity.getId());
+        statement.bindString(6, entity.getPortalPorts());
+        statement.bindLong(7, entity.getCreatedAt());
+        statement.bindLong(8, entity.getUpdatedAt());
+        statement.bindLong(9, entity.getId());
       }
     };
   }
@@ -165,6 +167,7 @@ public final class SiteDao_Impl implements SiteDao {
           final int _cursorIndexOfIpAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "ipAddress");
           final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
           final int _cursorIndexOfNotes = CursorUtil.getColumnIndexOrThrow(_cursor, "notes");
+          final int _cursorIndexOfPortalPorts = CursorUtil.getColumnIndexOrThrow(_cursor, "portalPorts");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final List<SiteEntity> _result = new ArrayList<SiteEntity>(_cursor.getCount());
@@ -180,11 +183,13 @@ public final class SiteDao_Impl implements SiteDao {
             _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
             final String _tmpNotes;
             _tmpNotes = _cursor.getString(_cursorIndexOfNotes);
+            final String _tmpPortalPorts;
+            _tmpPortalPorts = _cursor.getString(_cursorIndexOfPortalPorts);
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _item = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpCreatedAt,_tmpUpdatedAt);
+            _item = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpPortalPorts,_tmpCreatedAt,_tmpUpdatedAt);
             _result.add(_item);
           }
           return _result;
@@ -218,6 +223,7 @@ public final class SiteDao_Impl implements SiteDao {
           final int _cursorIndexOfIpAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "ipAddress");
           final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
           final int _cursorIndexOfNotes = CursorUtil.getColumnIndexOrThrow(_cursor, "notes");
+          final int _cursorIndexOfPortalPorts = CursorUtil.getColumnIndexOrThrow(_cursor, "portalPorts");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final SiteEntity _result;
@@ -232,11 +238,13 @@ public final class SiteDao_Impl implements SiteDao {
             _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
             final String _tmpNotes;
             _tmpNotes = _cursor.getString(_cursorIndexOfNotes);
+            final String _tmpPortalPorts;
+            _tmpPortalPorts = _cursor.getString(_cursorIndexOfPortalPorts);
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _result = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpCreatedAt,_tmpUpdatedAt);
+            _result = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpPortalPorts,_tmpCreatedAt,_tmpUpdatedAt);
           } else {
             _result = null;
           }
@@ -268,6 +276,7 @@ public final class SiteDao_Impl implements SiteDao {
           final int _cursorIndexOfIpAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "ipAddress");
           final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
           final int _cursorIndexOfNotes = CursorUtil.getColumnIndexOrThrow(_cursor, "notes");
+          final int _cursorIndexOfPortalPorts = CursorUtil.getColumnIndexOrThrow(_cursor, "portalPorts");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final SiteEntity _result;
@@ -282,11 +291,13 @@ public final class SiteDao_Impl implements SiteDao {
             _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
             final String _tmpNotes;
             _tmpNotes = _cursor.getString(_cursorIndexOfNotes);
+            final String _tmpPortalPorts;
+            _tmpPortalPorts = _cursor.getString(_cursorIndexOfPortalPorts);
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _result = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpCreatedAt,_tmpUpdatedAt);
+            _result = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpPortalPorts,_tmpCreatedAt,_tmpUpdatedAt);
           } else {
             _result = null;
           }
@@ -318,6 +329,7 @@ public final class SiteDao_Impl implements SiteDao {
           final int _cursorIndexOfIpAddress = CursorUtil.getColumnIndexOrThrow(_cursor, "ipAddress");
           final int _cursorIndexOfDescription = CursorUtil.getColumnIndexOrThrow(_cursor, "description");
           final int _cursorIndexOfNotes = CursorUtil.getColumnIndexOrThrow(_cursor, "notes");
+          final int _cursorIndexOfPortalPorts = CursorUtil.getColumnIndexOrThrow(_cursor, "portalPorts");
           final int _cursorIndexOfCreatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "createdAt");
           final int _cursorIndexOfUpdatedAt = CursorUtil.getColumnIndexOrThrow(_cursor, "updatedAt");
           final List<SiteEntity> _result = new ArrayList<SiteEntity>(_cursor.getCount());
@@ -333,11 +345,13 @@ public final class SiteDao_Impl implements SiteDao {
             _tmpDescription = _cursor.getString(_cursorIndexOfDescription);
             final String _tmpNotes;
             _tmpNotes = _cursor.getString(_cursorIndexOfNotes);
+            final String _tmpPortalPorts;
+            _tmpPortalPorts = _cursor.getString(_cursorIndexOfPortalPorts);
             final long _tmpCreatedAt;
             _tmpCreatedAt = _cursor.getLong(_cursorIndexOfCreatedAt);
             final long _tmpUpdatedAt;
             _tmpUpdatedAt = _cursor.getLong(_cursorIndexOfUpdatedAt);
-            _item = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpCreatedAt,_tmpUpdatedAt);
+            _item = new SiteEntity(_tmpId,_tmpName,_tmpIpAddress,_tmpDescription,_tmpNotes,_tmpPortalPorts,_tmpCreatedAt,_tmpUpdatedAt);
             _result.add(_item);
           }
           return _result;

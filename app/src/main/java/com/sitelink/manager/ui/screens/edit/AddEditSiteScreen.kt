@@ -44,6 +44,7 @@ fun AddEditSiteScreen(
 ) {
     val siteName by viewModel.siteName.collectAsState()
     val ipAddress by viewModel.ipAddress.collectAsState()
+    val portalPorts by viewModel.portalPorts.collectAsState()
     val description by viewModel.description.collectAsState()
     val notes by viewModel.notes.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
@@ -132,6 +133,20 @@ fun AddEditSiteScreen(
                         onValueChange = { viewModel.onIpAddressChange(it) },
                         label = { Text("Site IP Address *") },
                         placeholder = { Text("e.g. 14.142.185.130") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    OutlinedTextField(
+                        value = portalPorts,
+                        onValueChange = { viewModel.onPortalPortsChange(it) },
+                        label = { Text("Portal Ports (ZMP)") },
+                        placeholder = { Text("e.g. 8080, 8082, 8083") },
+                        supportingText = { Text("Comma-separated ports forwarded to /zmp/login.do") },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Ascii),
                         modifier = Modifier.fillMaxWidth(),

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,7 @@ import kotlinx.coroutines.launch
         TrustedHostKeyEntity::class,
         ConnectionLogEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -27,6 +28,12 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE sites ADD COLUMN portalPorts TEXT NOT NULL DEFAULT '8080, 8082, 8083'")
+            }
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -34,6 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "sitelink_manager.db"
                 )
+                    .addMigrations(MIGRATION_1_2)
                     .addCallback(object : Callback() {
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
@@ -44,7 +52,8 @@ abstract class AppDatabase : RoomDatabase() {
                                         name = "ITC Grand Chola",
                                         ipAddress = "14.142.185.130",
                                         description = "Luxury Hotel - Chennai Site Infrastructure",
-                                        notes = "Default hotel site configuration. Ports: 8080/8082/8083 (ZMP), 2222 (VM), 2223 (BM)."
+                                        notes = "Default hotel site configuration. Ports: 8080/8082/8083 (ZMP), 2222 (VM), 2223 (BM).",
+                                        portalPorts = "8080, 8082, 8083"
                                     )
                                 )
                             }

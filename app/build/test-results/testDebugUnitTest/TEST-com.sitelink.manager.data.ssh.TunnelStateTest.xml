@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sitelink.manager.data.ssh.TunnelStateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-20T12:49:10" hostname="NITROX" time="0.006">
+<testsuite name="com.sitelink.manager.data.ssh.TunnelStateTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-20T13:20:57" hostname="NITROX" time="0.001">
   <properties/>
   <testcase name="testTunnelUrlFormation" classname="com.sitelink.manager.data.ssh.TunnelStateTest" time="0.0"/>
   <testcase name="testTunnelStateTransitions" classname="com.sitelink.manager.data.ssh.TunnelStateTest" time="0.001"/>
-  <testcase name="testTunnelKeyGeneration" classname="com.sitelink.manager.data.ssh.TunnelStateTest" time="0.005"/>
+  <testcase name="testTunnelKeyGeneration" classname="com.sitelink.manager.data.ssh.TunnelStateTest" time="0.0"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

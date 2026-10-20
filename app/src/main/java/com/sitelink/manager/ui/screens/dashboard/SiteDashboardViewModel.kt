@@ -16,6 +16,7 @@ import com.sitelink.manager.domain.model.Site
 import com.sitelink.manager.domain.model.SshDiagnosticError
 import com.sitelink.manager.domain.model.SshSessionState
 import com.sitelink.manager.domain.model.TunnelInfo
+import com.sitelink.manager.domain.validation.InputValidator
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -179,6 +180,38 @@ class SiteDashboardViewModel(
                     port = port
                 )
             )
+        }
+    }
+
+    fun updatePortalPorts(newPortsString: String) {
+        val currentSite = _site.value ?: return
+        val portsRaw = newPortsString.trim()
+        if (portsRaw.isNotEmpty() && !InputValidator.isValidPortsString(portsRaw)) {
+            _errorMessage.value = "Portal ports must be valid numbers between 1 and 65535, separated by commas (e.g. 8080, 8082, 8083)."
+            return
+        }
+        val parsedList = if (portsRaw.isNotEmpty()) {
+            InputValidator.parsePortsString(portsRaw)
+        } else {
+            Site.DEFAULT_PORT_LIST
+        }
+        if (parsedList.isEmpty()) {
+            _errorMessage.value = "Please enter at least one valid port number (1..65535)."
+            return
+        }
+        val formattedPorts = parsedList.joinToString(", ")
+        viewModelScope.launch {
+            val updatedSite = currentSite.copy(
+                portalPorts = formattedPorts,
+                updatedAt = System.currentTimeMillis()
+            )
+            val res = siteRepository.updateSite(updatedSite)
+            if (res.isSuccess) {
+                _site.value = updatedSite
+                _statusMessage.value = "Portal ports updated to: $formattedPorts"
+            } else {
+                _errorMessage.value = res.exceptionOrNull()?.message ?: "Failed to update portal ports"
+            }
         }
     }
 

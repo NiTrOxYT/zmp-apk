@@ -22,6 +22,9 @@ class AddEditSiteViewModel(
     private val _ipAddress = MutableStateFlow("")
     val ipAddress: StateFlow<String> = _ipAddress.asStateFlow()
 
+    private val _portalPorts = MutableStateFlow(Site.DEFAULT_PORTAL_PORTS)
+    val portalPorts: StateFlow<String> = _portalPorts.asStateFlow()
+
     private val _description = MutableStateFlow("")
     val description: StateFlow<String> = _description.asStateFlow()
 
@@ -44,6 +47,7 @@ class AddEditSiteViewModel(
                     existingSite = site
                     _siteName.value = site.name
                     _ipAddress.value = site.ipAddress
+                    _portalPorts.value = site.portalPorts.ifEmpty { Site.DEFAULT_PORTAL_PORTS }
                     _description.value = site.description
                     _notes.value = site.notes
                 }
@@ -61,6 +65,11 @@ class AddEditSiteViewModel(
         _errorMessage.value = null
     }
 
+    fun onPortalPortsChange(ports: String) {
+        _portalPorts.value = ports
+        _errorMessage.value = null
+    }
+
     fun onDescriptionChange(desc: String) {
         _description.value = desc
     }
@@ -72,6 +81,7 @@ class AddEditSiteViewModel(
     fun saveSite() {
         val name = _siteName.value.trim()
         val ip = _ipAddress.value.trim()
+        val portsRaw = _portalPorts.value.trim()
 
         if (!InputValidator.isValidSiteName(name)) {
             _errorMessage.value = "Site name must be between 1 and 100 characters."
@@ -83,13 +93,30 @@ class AddEditSiteViewModel(
             return
         }
 
+        val parsedPorts = if (portsRaw.isNotEmpty()) {
+            if (!InputValidator.isValidPortsString(portsRaw)) {
+                _errorMessage.value = "Portal ports must be valid port numbers between 1 and 65535, separated by commas (e.g. 8080, 8082, 8083)."
+                return
+            }
+            val list = InputValidator.parsePortsString(portsRaw)
+            if (list.isEmpty()) {
+                _errorMessage.value = "Please enter at least one valid portal port (1..65535)."
+                return
+            }
+            list.joinToString(", ")
+        } else {
+            Site.DEFAULT_PORTAL_PORTS
+        }
+
         viewModelScope.launch {
             if (existingSite != null) {
                 val updated = existingSite!!.copy(
                     name = name,
                     ipAddress = ip,
+                    portalPorts = parsedPorts,
                     description = _description.value.trim(),
-                    notes = _notes.value.trim()
+                    notes = _notes.value.trim(),
+                    updatedAt = System.currentTimeMillis()
                 )
                 val res = siteRepository.updateSite(updated)
                 if (res.isSuccess) {
@@ -101,6 +128,7 @@ class AddEditSiteViewModel(
                 val newSite = Site(
                     name = name,
                     ipAddress = ip,
+                    portalPorts = parsedPorts,
                     description = _description.value.trim(),
                     notes = _notes.value.trim()
                 )
