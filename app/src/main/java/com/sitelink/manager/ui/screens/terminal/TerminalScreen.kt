@@ -11,17 +11,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -43,7 +49,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +64,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +78,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -88,10 +95,14 @@ import com.sitelink.manager.ui.theme.StatusConnected
 import com.sitelink.manager.ui.theme.StatusDisconnected
 import com.sitelink.manager.ui.theme.TerminalBackground
 import com.sitelink.manager.ui.theme.TerminalForeground
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 
-private const val SENTINEL = "\u200B"
+private const val SENTINEL = " "
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TerminalScreen(
     viewModel: TerminalViewModel,
@@ -99,6 +110,7 @@ fun TerminalScreen(
 ) {
     val site by viewModel.site.collectAsState()
     val terminalBuffer by viewModel.terminalBuffer.collectAsState()
+    val terminalState by viewModel.terminalState.collectAsState()
     val isTerminalActive by viewModel.isTerminalActive.collectAsState()
     val terminalTitle by viewModel.terminalTitle.collectAsState()
 
@@ -127,10 +139,19 @@ fun TerminalScreen(
         label = "cursorBlink"
     )
 
-    // Auto-scroll terminal to bottom when new text arrives
-    LaunchedEffect(terminalBuffer) {
+    val isImeVisible = WindowInsets.isImeVisible
+
+    // Auto-scroll terminal to bottom when keyboard opens
+    LaunchedEffect(isImeVisible) {
+        if (isImeVisible && terminalScrollState.maxValue > 0) {
+            terminalScrollState.scrollTo(terminalScrollState.maxValue)
+        }
+    }
+
+    // Auto-scroll terminal to bottom when new text arrives or cursor moves
+    LaunchedEffect(terminalState.revision, terminalScrollState.maxValue) {
         if (terminalScrollState.maxValue > 0) {
-            terminalScrollState.animateScrollTo(terminalScrollState.maxValue)
+            terminalScrollState.scrollTo(terminalScrollState.maxValue)
         }
     }
 
@@ -150,6 +171,7 @@ fun TerminalScreen(
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets.statusBars,
         topBar = {
             TopAppBar(
                 title = {
@@ -234,8 +256,12 @@ fun TerminalScreen(
 
                     // Keyboard trigger icon
                     IconButton(onClick = {
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
+                        if (isImeVisible) {
+                            keyboardController?.hide()
+                        } else {
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        }
                     }) {
                         Icon(
                             imageVector = Icons.Default.Keyboard,
@@ -266,7 +292,9 @@ fun TerminalScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
+                .imePadding()
+                .navigationBarsPadding()
                 .background(TerminalBackground)
         ) {
             // 1. Direct interactive terminal display with full selection & copy support
@@ -281,28 +309,29 @@ fun TerminalScreen(
                         focusRequester.requestFocus()
                         keyboardController?.show()
                     }
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
                     .verticalScroll(terminalScrollState)
             ) {
                 SelectionContainer {
-                    val parsedText = AnsiColorParser.parse(terminalBuffer, defaultColor = TerminalForeground)
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = parsedText,
-                            fontFamily = FontFamily.Monospace,
-                            fontSize = 12.sp,
-                            lineHeight = 16.sp
+                    val parsedText = remember(terminalState, cursorAlpha, isTerminalActive) {
+                        AnsiColorParser.parse(
+                            rawText = terminalState.formattedText,
+                            defaultColor = TerminalForeground,
+                            cursorRow = terminalState.cursorRow,
+                            cursorCol = terminalState.cursorCol,
+                            cursorVisible = isTerminalActive && (cursorAlpha > 0.35f),
+                            cursorColor = Color(0xFF58A6FF)
                         )
-                        if (isTerminalActive) {
-                            Text(
-                                text = "█",
-                                color = MaterialTheme.colorScheme.primary.copy(alpha = cursorAlpha),
-                                fontFamily = FontFamily.Monospace,
-                                fontSize = 12.sp,
-                                lineHeight = 16.sp
-                            )
-                        }
                     }
+                    Text(
+                        text = parsedText,
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp)
+                    )
                 }
 
                 // Invisible Direct Shell Input Receiver
@@ -313,10 +342,16 @@ fun TerminalScreen(
                         val newText = newValue.text
 
                         if (newText.length > oldText.length) {
-                            val added = newText.substring(oldText.length)
+                            val added = if (newText.startsWith(SENTINEL)) {
+                                newText.removePrefix(SENTINEL)
+                            } else if (newText.endsWith(SENTINEL)) {
+                                newText.removeSuffix(SENTINEL)
+                            } else {
+                                newText.replace(SENTINEL, "")
+                            }
                             if (added == "\n" || added == "\r") {
                                 viewModel.sendEnter()
-                            } else {
+                            } else if (added.isNotEmpty()) {
                                 viewModel.sendInput(added)
                             }
                         } else if (newText.length < oldText.length) {
@@ -372,7 +407,7 @@ fun TerminalScreen(
                             } else false
                         },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Ascii,
+                        keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.None,
                         autoCorrectEnabled = false
                     ),
@@ -382,7 +417,7 @@ fun TerminalScreen(
                 )
             }
 
-            // 2. Terminal Virtual Keys Toolbar (Cycles commands with ▲ and ▼, special control keys)
+            // 2. Terminal Virtual Keys Toolbar (Fast thumb editing: ⌫, ◄, ►, ▲, ▼ with hold-to-repeat)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -393,20 +428,46 @@ fun TerminalScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TerminalKeyButton(
+                    label = "⌫",
+                    onClick = { viewModel.sendBackspace() },
+                    repeatable = true,
+                    highlight = true
+                )
+                TerminalKeyButton(
+                    label = "◄",
+                    onClick = { viewModel.sendArrowLeft() },
+                    repeatable = true
+                )
+                TerminalKeyButton(
+                    label = "►",
+                    onClick = { viewModel.sendArrowRight() },
+                    repeatable = true
+                )
+                TerminalKeyButton(
+                    label = "▲",
+                    onClick = { viewModel.sendArrowUp() },
+                    repeatable = true
+                )
+                TerminalKeyButton(
+                    label = "▼",
+                    onClick = { viewModel.sendArrowDown() },
+                    repeatable = true
+                )
+                TerminalKeyButton(label = "TAB", onClick = { viewModel.sendTab() })
+                TerminalKeyButton(label = "ESC", onClick = { viewModel.sendEsc() })
+                TerminalKeyButton(
                     label = "KBD",
                     onClick = {
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
+                        if (isImeVisible) {
+                            keyboardController?.hide()
+                        } else {
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        }
                     }
                 )
-                TerminalKeyButton(label = "ESC", onClick = { viewModel.sendEsc() })
-                TerminalKeyButton(label = "TAB", onClick = { viewModel.sendTab() })
                 TerminalKeyButton(label = "CTRL+C", onClick = { viewModel.sendCtrlC() }, highlight = true)
                 TerminalKeyButton(label = "CTRL+D", onClick = { viewModel.sendCtrlD() })
-                TerminalKeyButton(label = "▲", onClick = { viewModel.sendArrowUp() })
-                TerminalKeyButton(label = "▼", onClick = { viewModel.sendArrowDown() })
-                TerminalKeyButton(label = "◄", onClick = { viewModel.sendArrowLeft() })
-                TerminalKeyButton(label = "►", onClick = { viewModel.sendArrowRight() })
                 TerminalKeyButton(label = "CLEAR", onClick = { viewModel.sendClear() })
                 TerminalKeyButton(
                     label = "COPY",
@@ -495,22 +556,44 @@ fun TerminalScreen(
 fun TerminalKeyButton(
     label: String,
     onClick: () -> Unit,
-    highlight: Boolean = false
+    highlight: Boolean = false,
+    repeatable: Boolean = false
 ) {
-    FilledTonalButton(
-        onClick = onClick,
-        shape = RoundedCornerShape(6.dp),
-        colors = ButtonDefaults.filledTonalButtonColors(
-            containerColor = if (highlight) MaterialTheme.colorScheme.error.copy(alpha = 0.25f) else Color(0xFF21262D),
-            contentColor = if (highlight) MaterialTheme.colorScheme.error else Color(0xFFC9D1D9)
-        ),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 10.dp, vertical = 4.dp),
-        modifier = Modifier.height(34.dp)
+    val coroutineScope = rememberCoroutineScope()
+    Box(
+        modifier = Modifier
+            .height(34.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(
+                if (highlight) MaterialTheme.colorScheme.error.copy(alpha = 0.25f)
+                else Color(0xFF21262D)
+            )
+            .pointerInput(repeatable, onClick) {
+                detectTapGestures(
+                    onPress = {
+                        onClick()
+                        if (repeatable) {
+                            val job = coroutineScope.launch {
+                                delay(350)
+                                while (isActive) {
+                                    onClick()
+                                    delay(65)
+                                }
+                            }
+                            tryAwaitRelease()
+                            job.cancel()
+                        }
+                    }
+                )
+            }
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = label,
+            color = if (highlight) MaterialTheme.colorScheme.error else Color(0xFFC9D1D9),
             fontFamily = FontFamily.Monospace,
-            fontSize = 11.sp,
+            fontSize = 12.sp,
             fontWeight = FontWeight.Bold
         )
     }

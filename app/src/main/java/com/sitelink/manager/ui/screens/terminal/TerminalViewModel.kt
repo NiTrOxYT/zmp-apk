@@ -22,11 +22,16 @@ class TerminalViewModel(
     val targetPort: Int
 ) : ViewModel() {
 
+    private val terminalBufferEngine = TerminalBufferEngine()
+
     private val _site = MutableStateFlow<Site?>(null)
     val site: StateFlow<Site?> = _site.asStateFlow()
 
     private val _terminalBuffer = MutableStateFlow("")
     val terminalBuffer: StateFlow<String> = _terminalBuffer.asStateFlow()
+
+    private val _terminalState = MutableStateFlow(TerminalState())
+    val terminalState: StateFlow<TerminalState> = _terminalState.asStateFlow()
 
     private val _commandInput = MutableStateFlow("")
     val commandInput: StateFlow<String> = _commandInput.asStateFlow()
@@ -47,17 +52,13 @@ class TerminalViewModel(
             _site.value = siteObj
 
             if (siteObj != null) {
-                // Collect output stream
+                // Collect output stream and process terminal cursor/erase/carriage return codes
                 launch {
                     sshRepository.terminalOutput.collect { chunk ->
-                        val current = _terminalBuffer.value
-                        // Keep reasonable buffer length for performance
-                        val updated = if (current.length > 50000) {
-                            current.substring(current.length - 30000) + chunk
-                        } else {
-                            current + chunk
-                        }
-                        _terminalBuffer.value = updated
+                        terminalBufferEngine.processChunk(chunk)
+                        val state = terminalBufferEngine.getState()
+                        _terminalState.value = state
+                        _terminalBuffer.value = state.formattedText
                     }
                 }
 
@@ -119,6 +120,9 @@ class TerminalViewModel(
     }
 
     fun clearTerminalBuffer() {
+        terminalBufferEngine.clear()
+        val state = terminalBufferEngine.getState()
+        _terminalState.value = state
         _terminalBuffer.value = ""
     }
 

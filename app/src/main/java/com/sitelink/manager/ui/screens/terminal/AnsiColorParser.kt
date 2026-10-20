@@ -29,56 +29,131 @@ object AnsiColorParser {
         97 to Color(0xFFF0F6FC)  // Bright White
     )
 
-    fun parse(rawText: String, defaultColor: Color = Color(0xFFE6EDF3)): AnnotatedString {
+    fun parse(
+        rawText: String,
+        defaultColor: Color = Color(0xFFE6EDF3),
+        cursorRow: Int = -1,
+        cursorCol: Int = -1,
+        cursorVisible: Boolean = false,
+        cursorColor: Color = Color(0xFF58A6FF)
+    ): AnnotatedString {
+        val lines = rawText.split("\n")
         return buildAnnotatedString {
             var currentColor = defaultColor
             var isBold = false
-            var lastIndex = 0
 
-            ANSI_REGEX.findAll(rawText).forEach { match ->
-                val start = match.range.first
-                if (start > lastIndex) {
-                    val textChunk = rawText.substring(lastIndex, start)
+            lines.forEachIndexed { lineIdx, line ->
+                val isCursorLine = cursorVisible && (lineIdx == cursorRow)
+                var visualCol = 0
+                var lastIndex = 0
+
+                ANSI_REGEX.findAll(line).forEach { match ->
+                    val start = match.range.first
+                    if (start > lastIndex) {
+                        val textChunk = line.substring(lastIndex, start)
+                        visualCol = appendTextWithCursor(
+                            textChunk = textChunk,
+                            startVisualCol = visualCol,
+                            isCursorLine = isCursorLine,
+                            cursorCol = cursorCol,
+                            currentColor = currentColor,
+                            isBold = isBold,
+                            cursorColor = cursorColor
+                        )
+                    }
+
+                    // Parse escape codes
+                    val codeStr = match.value.removePrefix("\u001B[").removeSuffix("m")
+                    if (match.value.endsWith("m")) {
+                        val codes = codeStr.split(";").mapNotNull { it.toIntOrNull() }
+                        if (codes.isEmpty() || codes.contains(0)) {
+                            currentColor = defaultColor
+                            isBold = false
+                        }
+                        if (codes.contains(1)) {
+                            isBold = true
+                        }
+                        codes.forEach { code ->
+                            ANSI_COLORS[code]?.let { color ->
+                                currentColor = color
+                            }
+                        }
+                    }
+                    lastIndex = match.range.last + 1
+                }
+
+                if (lastIndex < line.length) {
+                    val textChunk = line.substring(lastIndex)
+                    visualCol = appendTextWithCursor(
+                        textChunk = textChunk,
+                        startVisualCol = visualCol,
+                        isCursorLine = isCursorLine,
+                        cursorCol = cursorCol,
+                        currentColor = currentColor,
+                        isBold = isBold,
+                        cursorColor = cursorColor
+                    )
+                }
+
+                // If cursor is at or past the end of the line text
+                if (isCursorLine && cursorCol >= visualCol) {
+                    // Pad spaces if cursor is past end
+                    while (visualCol < cursorCol) {
+                        append(" ")
+                        visualCol++
+                    }
                     pushStyle(
                         SpanStyle(
-                            color = currentColor,
-                            fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
+                            color = cursorColor,
+                            fontWeight = FontWeight.Bold
                         )
                     )
-                    append(textChunk)
+                    append("█")
                     pop()
                 }
 
-                // Parse codes
-                val codeStr = match.value.removePrefix("\u001B[").removeSuffix("m")
-                if (match.value.endsWith("m")) {
-                    val codes = codeStr.split(";").mapNotNull { it.toIntOrNull() }
-                    if (codes.isEmpty() || codes.contains(0)) {
-                        currentColor = defaultColor
-                        isBold = false
-                    }
-                    if (codes.contains(1)) {
-                        isBold = true
-                    }
-                    codes.forEach { code ->
-                        ANSI_COLORS[code]?.let { color ->
-                            currentColor = color
-                        }
-                    }
+                // Append newline between lines
+                if (lineIdx < lines.size - 1) {
+                    append("\n")
                 }
-                lastIndex = match.range.last + 1
             }
+        }
+    }
 
-            if (lastIndex < rawText.length) {
+    private fun androidx.compose.ui.text.AnnotatedString.Builder.appendTextWithCursor(
+        textChunk: String,
+        startVisualCol: Int,
+        isCursorLine: Boolean,
+        cursorCol: Int,
+        currentColor: Color,
+        isBold: Boolean,
+        cursorColor: Color
+    ): Int {
+        var currentVisualCol = startVisualCol
+        for (ch in textChunk) {
+            if (isCursorLine && currentVisualCol == cursorCol) {
+                // Inverted block cursor over character
+                pushStyle(
+                    SpanStyle(
+                        color = Color.Black,
+                        background = cursorColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                append(ch)
+                pop()
+            } else {
                 pushStyle(
                     SpanStyle(
                         color = currentColor,
                         fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
                     )
                 )
-                append(rawText.substring(lastIndex))
+                append(ch)
                 pop()
             }
+            currentVisualCol++
         }
+        return currentVisualCol
     }
 }
