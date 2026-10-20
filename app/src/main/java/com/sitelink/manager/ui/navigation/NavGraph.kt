@@ -117,7 +117,8 @@ fun SiteLinkNavGraph(
                     sshRepository = app.sshRepository,
                     siteId = siteId,
                     sessionType = type,
-                    targetPort = port
+                    targetPort = port,
+                    appContext = app.applicationContext
                 )
             )
             TerminalScreen(

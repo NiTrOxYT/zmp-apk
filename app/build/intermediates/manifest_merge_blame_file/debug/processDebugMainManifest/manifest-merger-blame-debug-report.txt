@@ -90,11 +90,11 @@
 51            android:foregroundServiceType="specialUse" >
 51-->C:\zmp-apk\app\src\main\AndroidManifest.xml:35:13-55
 52            <property
-52-->C:\zmp-apk\app\src\main\AndroidManifest.xml:36:13-38:77
+52-->C:\zmp-apk\app\src\main\AndroidManifest.xml:36:13-38:85
 53                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
 53-->C:\zmp-apk\app\src\main\AndroidManifest.xml:37:17-76
-54                android:value="SSH Port Forwarding and Tunnel Management" />
-54-->C:\zmp-apk\app\src\main\AndroidManifest.xml:38:17-74
+54                android:value="SSH Port Forwarding and Terminal Shell Management" />
+54-->C:\zmp-apk\app\src\main\AndroidManifest.xml:38:17-82
 55        </service>
 56
 57        <provider

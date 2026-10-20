@@ -90,9 +90,11 @@ class SshManager(
             _sessionState.value = SshSessionState.Connecting("Connecting to $username@$host:$port...")
 
             val session = jsch.getSession(username, host, port)
-            session.timeout = 20000
-            session.serverAliveInterval = 30000
-            session.serverAliveCountMax = 3
+            // SO_TIMEOUT = 0: Disables socket read timeout so idle SSH sessions remain open indefinitely
+            session.timeout = 0
+            // Send SSH keepalive ping every 15 seconds to prevent NAT/router/firewall disconnections
+            session.serverAliveInterval = 15000
+            session.serverAliveCountMax = 4
 
             var pwdString = ""
             when (authInfo) {

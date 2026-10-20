@@ -181,8 +181,8 @@ fun TerminalScreen(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { viewModel.exitShell() }) {
-                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Exit")
+                    IconButton(onClick = { onNavigateBack() }) {
+                        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -253,14 +253,25 @@ fun TerminalScreen(
                         )
                     }
 
-                    // Exit Shell Button
-                    Button(
-                        onClick = { viewModel.exitShell() },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Text("Exit Shell")
+                    // Exit Shell / Reconnect Button
+                    if (isTerminalActive) {
+                        Button(
+                            onClick = { viewModel.exitShell() },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Exit Shell")
+                        }
+                    } else {
+                        Button(
+                            onClick = { viewModel.reconnect() },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Text("Reconnect")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

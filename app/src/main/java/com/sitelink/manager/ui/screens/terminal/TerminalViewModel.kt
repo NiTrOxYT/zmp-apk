@@ -1,18 +1,21 @@
 package com.sitelink.manager.ui.screens.terminal
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.sitelink.manager.data.repository.SiteRepository
 import com.sitelink.manager.data.repository.SshRepository
 import com.sitelink.manager.domain.model.Site
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class TerminalViewModel(
@@ -20,19 +23,18 @@ class TerminalViewModel(
     private val sshRepository: SshRepository,
     private val siteId: Long,
     val sessionType: String,
-    val targetPort: Int
+    val targetPort: Int,
+    private val appContext: Context? = null
 ) : ViewModel() {
-
-    private val terminalBufferEngine = TerminalBufferEngine()
 
     private val _site = MutableStateFlow<Site?>(null)
     val site: StateFlow<Site?> = _site.asStateFlow()
 
-    private val _terminalBuffer = MutableStateFlow("")
-    val terminalBuffer: StateFlow<String> = _terminalBuffer.asStateFlow()
+    val terminalState: StateFlow<TerminalState> = sshRepository.terminalState
 
-    private val _terminalState = MutableStateFlow(TerminalState())
-    val terminalState: StateFlow<TerminalState> = _terminalState.asStateFlow()
+    val terminalBuffer: StateFlow<String> = sshRepository.terminalState
+        .map { it.formattedText }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, sshRepository.terminalState.value.formattedText)
 
     private val _commandInput = MutableStateFlow("")
     val commandInput: StateFlow<String> = _commandInput.asStateFlow()
@@ -53,34 +55,29 @@ class TerminalViewModel(
             _site.value = siteObj
 
             if (siteObj != null) {
-                // Collect output stream and process terminal cursor/erase/carriage return codes in background
-                launch(Dispatchers.Default) {
-                    sshRepository.terminalOutput.collect { chunk ->
-                        terminalBufferEngine.processChunk(chunk)
-                        val state = terminalBufferEngine.getState()
-                        _terminalState.value = state
-                        _terminalBuffer.value = state.formattedText
-                    }
-                }
-
                 // Ensure Office SSH session is active
                 if (!sshRepository.isConnected()) {
-                    _terminalBuffer.value = "[SiteLink] Connecting to Office SSH Server (111.93.205.187:22)...\r\n"
                     val connRes = sshRepository.connectToOfficeWithSavedCredentials()
                     if (connRes.isFailure) {
-                        val diag = connRes.exceptionOrNull()?.message ?: "Failed to connect to office server"
-                        _terminalBuffer.value = "[SiteLink Error] $diag\r\n"
                         return@launch
                     }
                 }
 
-                // Start interactive SSH session
+                // Start interactive SSH session (or reuse existing active session if same site/port)
                 sshRepository.startTerminalSession(
                     site = siteObj,
                     targetPort = targetPort,
-                    sessionType = sessionType
+                    sessionType = sessionType,
+                    context = appContext
                 )
             }
+        }
+    }
+
+    fun reconnect() {
+        viewModelScope.launch {
+            sshRepository.closeTerminalSession()
+            initSession()
         }
     }
 
@@ -115,18 +112,15 @@ class TerminalViewModel(
     }
 
     fun getAllOutput(): String {
-        return terminalBufferEngine.getAllText()
+        return sshRepository.getTerminalAllOutput()
     }
 
     fun getLastLines(count: Int): String {
-        return terminalBufferEngine.getFormattedText(count)
+        return sshRepository.getTerminalLastLines(count)
     }
 
     fun clearTerminalBuffer() {
-        terminalBufferEngine.clear()
-        val state = terminalBufferEngine.getState()
-        _terminalState.value = state
-        _terminalBuffer.value = ""
+        sshRepository.clearTerminalBuffer()
     }
 
     fun sendCtrlC() {
@@ -185,7 +179,9 @@ class TerminalViewModel(
 
     fun exitShell() {
         viewModelScope.launch {
-            sshRepository.sendTerminalInput("exit\n")
+            if (isTerminalActive.value) {
+                sshRepository.sendTerminalInput("exit\n")
+            }
             sshRepository.closeTerminalSession()
             _exitEvent.emit(Unit)
         }
@@ -193,7 +189,9 @@ class TerminalViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        sshRepository.closeTerminalSession()
+        // Do NOT terminate the SSH session here.
+        // Terminal sessions are managed by SshTerminalManager and TunnelForegroundService,
+        // allowing screen rotation and background operation without dropping the shell.
     }
 
     class Factory(
@@ -201,11 +199,12 @@ class TerminalViewModel(
         private val sshRepository: SshRepository,
         private val siteId: Long,
         private val sessionType: String,
-        private val targetPort: Int
+        private val targetPort: Int,
+        private val appContext: Context? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TerminalViewModel(siteRepository, sshRepository, siteId, sessionType, targetPort) as T
+            return TerminalViewModel(siteRepository, sshRepository, siteId, sessionType, targetPort, appContext) as T
         }
     }
 }

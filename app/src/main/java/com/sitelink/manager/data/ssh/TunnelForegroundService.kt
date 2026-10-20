@@ -15,6 +15,8 @@ import com.sitelink.manager.SiteLinkApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import android.content.pm.ServiceInfo
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -35,6 +37,7 @@ class TunnelForegroundService : Service() {
             app?.let {
                 CoroutineScope(Dispatchers.IO).launch {
                     it.sshRepository.closeAllTunnels()
+                    it.sshRepository.closeTerminalSession()
                 }
             }
             stopForeground(STOP_FOREGROUND_REMOVE)
@@ -42,22 +45,43 @@ class TunnelForegroundService : Service() {
             return START_NOT_STICKY
         }
 
-        val notification = buildNotification("SiteLink Active: SSH tunnels connected")
-        startForeground(NOTIFICATION_ID, notification)
+        val initialNotif = buildNotification("SiteLink Active: SSH session connected")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(
+                NOTIFICATION_ID,
+                initialNotif,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, initialNotif)
+        }
 
-        // Observe active tunnels and auto-stop when 0
+        // Observe active tunnels & terminal sessions; auto-stop when both are idle
         val app = application as? SiteLinkApp
         app?.let {
             serviceScope.launch {
-                it.sshRepository.activeTunnels.collectLatest { tunnels ->
-                    if (tunnels.isEmpty()) {
+                combine(
+                    it.sshRepository.activeTunnels,
+                    it.sshRepository.isTerminalActive,
+                    it.sshRepository.terminalTitle
+                ) { tunnels, isTerminalActive, terminalTitle ->
+                    Triple(tunnels, isTerminalActive, terminalTitle)
+                }.collectLatest { (tunnels, isTerminalActive, terminalTitle) ->
+                    if (tunnels.isEmpty() && !isTerminalActive) {
                         stopForeground(STOP_FOREGROUND_REMOVE)
                         stopSelf()
                     } else {
-                        val tunnelDescriptions = tunnels.values.joinToString(", ") { t ->
-                            "${t.siteName} (:${t.remotePort} -> :${t.localPort})"
+                        val parts = mutableListOf<String>()
+                        if (isTerminalActive) {
+                            parts.add(if (terminalTitle.isNotBlank()) "Shell: $terminalTitle" else "Interactive Shell Active")
                         }
-                        val updatedNotif = buildNotification(tunnelDescriptions)
+                        if (tunnels.isNotEmpty()) {
+                            val tunnelDescriptions = tunnels.values.joinToString(", ") { t ->
+                                "${t.siteName} (:${t.remotePort} -> :${t.localPort})"
+                            }
+                            parts.add("Tunnels: $tunnelDescriptions")
+                        }
+                        val updatedNotif = buildNotification(parts.joinToString(" | "))
                         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                         manager.notify(NOTIFICATION_ID, updatedNotif)
                     }
@@ -90,7 +114,7 @@ class TunnelForegroundService : Service() {
         )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("SiteLink Manager — Active SSH Tunnels")
+            .setContentTitle("SiteLink Manager — Active Connection")
             .setContentText(contentText)
             .setSmallIcon(android.R.drawable.stat_notify_sync)
             .setOngoing(true)
@@ -104,10 +128,10 @@ class TunnelForegroundService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "SiteLink Active Tunnels",
+                "SiteLink Active Connections",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Keeps SSH port forwarding tunnels alive while using browser"
+                description = "Keeps SSH tunnels and terminal sessions alive in the background"
             }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)

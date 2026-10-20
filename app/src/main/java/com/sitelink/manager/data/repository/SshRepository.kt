@@ -12,6 +12,7 @@ import com.sitelink.manager.domain.model.HostVerificationResult
 import com.sitelink.manager.domain.model.Site
 import com.sitelink.manager.domain.model.SshSessionState
 import com.sitelink.manager.domain.model.TunnelInfo
+import com.sitelink.manager.ui.screens.terminal.TerminalState
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -28,6 +29,7 @@ class SshRepository(
     val terminalOutput: SharedFlow<String> = sshTerminalManager.terminalOutput
     val isTerminalActive: StateFlow<Boolean> = sshTerminalManager.isTerminalActive
     val terminalTitle: StateFlow<String> = sshTerminalManager.currentTitle
+    val terminalState: StateFlow<TerminalState> = sshTerminalManager.terminalState
 
     fun isConnected(): Boolean = sshManager.isConnected()
 
@@ -105,14 +107,25 @@ class SshRepository(
         return sshTunnelManager.getActiveTunnel(siteId, remotePort)
     }
 
-    suspend fun startTerminalSession(site: Site, targetPort: Int, sessionType: String): Result<Unit> {
-        return sshTerminalManager.startTerminalSession(
+    suspend fun startTerminalSession(
+        site: Site,
+        targetPort: Int,
+        sessionType: String,
+        context: android.content.Context? = null
+    ): Result<Unit> {
+        val result = sshTerminalManager.startTerminalSession(
             siteId = site.id,
             siteName = site.name,
             siteIp = site.ipAddress,
             targetPort = targetPort,
             sessionType = sessionType
         )
+        if (result.isSuccess && context != null) {
+            try {
+                TunnelForegroundService.startService(context)
+            } catch (_: Exception) {}
+        }
+        return result
     }
 
     suspend fun sendTerminalInput(text: String) {
@@ -125,6 +138,14 @@ class SshRepository(
 
     fun closeTerminalSession() {
         sshTerminalManager.closeTerminalSession()
+    }
+
+    fun getTerminalAllOutput(): String = sshTerminalManager.getAllOutput()
+
+    fun getTerminalLastLines(count: Int): String = sshTerminalManager.getLastLines(count)
+
+    fun clearTerminalBuffer() {
+        sshTerminalManager.clearTerminalBuffer()
     }
 
     fun resizeTerminal(cols: Int, rows: Int) {
