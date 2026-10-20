@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SiteLink Manager</string>
+    <string name="default_office_host">111.93.205.187</string>
+    <string name="default_office_port">22</string>
+    <string name="default_office_user">sourik</string>
+    <string name="initial_site_ip">14.142.185.130</string>
+    <string name="initial_site_name">ITC Grand Chola</string>
+    <style name="Theme.SiteLinkManager" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

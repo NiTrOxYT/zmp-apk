@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SiteLink Manager</string>
+    <string name="default_office_host">111.93.205.187</string>
+    <string name="default_office_user">sourik</string>
+    <string name="default_office_port">22</string>
+    <string name="initial_site_name">ITC Grand Chola</string>
+    <string name="initial_site_ip">14.142.185.130</string>
+</resources>
