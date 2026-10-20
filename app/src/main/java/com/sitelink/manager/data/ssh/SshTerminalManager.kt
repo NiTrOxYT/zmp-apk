@@ -77,7 +77,7 @@ class SshTerminalManager(
             // Safe nested SSH command to target site appliance:
             // VM: sshpass -p 'SuPp0rt@MVM@202602' ssh -o StrictHostKeyChecking=no support@<ip> -p 2222
             // BM: sshpass -p 'SuPp0rt@Base@202602' ssh -o StrictHostKeyChecking=no support@<ip> -p 2223
-            val command = "sshpass -p '$nestedPassword' ssh -o StrictHostKeyChecking=no support@$sanitizedIp -p $actualPort"
+            val command = "sshpass -p '$nestedPassword' ssh -o StrictHostKeyChecking=no -o TCPKeepAlive=yes support@$sanitizedIp -p $actualPort"
             channel.setCommand(command)
 
             val inputStream: InputStream = channel.inputStream

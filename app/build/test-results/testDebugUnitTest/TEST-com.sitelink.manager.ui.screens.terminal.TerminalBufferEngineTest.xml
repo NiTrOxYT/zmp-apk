@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-20T01:13:53" hostname="NITROX" time="0.154">
+<testsuite name="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-10-20T12:27:20" hostname="NITROX" time="0.146">
   <properties/>
-  <testcase name="testPreservesAnsiColorsWhileHandlingCursorMoves" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.004"/>
-  <testcase name="testEraseEntireLine" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.0"/>
-  <testcase name="testCarriageReturnOverwritesFromStartOfLine" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.001"/>
-  <testcase name="testHistoryCycleOverwritesLineWithoutGhostCharacters" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.002"/>
-  <testcase name="testBackspaceDeletesCharacter" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.001"/>
-  <testcase name="testAnsiColorParserRendersCursor" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.144"/>
+  <testcase name="testPreservesAnsiColorsWhileHandlingCursorMoves" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.038"/>
+  <testcase name="testEraseEntireLine" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.001"/>
+  <testcase name="testCarriageReturnOverwritesFromStartOfLine" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.0"/>
+  <testcase name="testHistoryCycleOverwritesLineWithoutGhostCharacters" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.032"/>
+  <testcase name="testBackspaceDeletesCharacter" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.0"/>
+  <testcase name="testAnsiColorParserRendersCursor" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.065"/>
   <testcase name="testCursorMovementLeftAndRightWithArrowKeys" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.001"/>
+  <testcase name="testBufferLimitingAndGetAllText" classname="com.sitelink.manager.ui.screens.terminal.TerminalBufferEngineTest" time="0.007"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

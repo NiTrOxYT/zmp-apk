@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-20T01:13:52" hostname="NITROX" time="0.345">
+<testsuite name="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" tests="16" skipped="0" failures="0" errors="0" timestamp="2026-10-20T12:27:20" hostname="NITROX" time="0.148">
   <properties/>
-  <testcase name="testDiagnosticErrorCategorization" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.05"/>
-  <testcase name="testStrictHostKeyVerificationRejectsChangedKey" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.163"/>
-  <testcase name="testZmpPortsAndTunnelKeys" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.032"/>
-  <testcase name="testHostKeyLookupWhenTypeIsNull" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.009"/>
-  <testcase name="testTargetIpSanitizationPreventsCommandInjection" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.01"/>
-  <testcase name="testSha256FingerprintCalculation" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.001"/>
-  <testcase name="testHostKeyGetAllReturnsAllTrustedEntities" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.003"/>
-  <testcase name="testTerminalLineExtractionForCopying" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.027"/>
+  <testcase name="testDiagnosticErrorCategorization" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.022"/>
+  <testcase name="testStrictHostKeyVerificationRejectsChangedKey" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.089"/>
+  <testcase name="testZmpPortsAndTunnelKeys" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.001"/>
+  <testcase name="testHostKeyLookupWhenTypeIsNull" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.006"/>
+  <testcase name="testTargetIpSanitizationPreventsCommandInjection" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.005"/>
+  <testcase name="testSha256FingerprintCalculation" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.0"/>
+  <testcase name="testHostKeyGetAllReturnsAllTrustedEntities" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.002"/>
+  <testcase name="testTerminalLineExtractionForCopying" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.0"/>
   <testcase name="testTerminalControlCodesAndDirectInput" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.0"/>
-  <testcase name="testVmAndBmNestedSshCommands" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.013"/>
-  <testcase name="testStrictHostKeyVerificationUnknownHostRequiresTrust" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.005"/>
+  <testcase name="testVmAndBmNestedSshCommands" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.007"/>
+  <testcase name="testStrictHostKeyVerificationUnknownHostRequiresTrust" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.002"/>
   <testcase name="testVmAndBmTargetPorts" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.0"/>
-  <testcase name="testLoopbackBindingSecurity" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.008"/>
+  <testcase name="testLoopbackBindingSecurity" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.005"/>
   <testcase name="testStrictHostKeyVerificationMatching" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.002"/>
-  <testcase name="testConcurrentLocalPortAllocationAvoidsCollisions" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.011"/>
-  <testcase name="testHostKeyLookupWhenTypeIsValidOrMismatch" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.003"/>
+  <testcase name="testConcurrentLocalPortAllocationAvoidsCollisions" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.002"/>
+  <testcase name="testHostKeyLookupWhenTypeIsValidOrMismatch" classname="com.sitelink.manager.data.ssh.SshNetworkingAuditTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

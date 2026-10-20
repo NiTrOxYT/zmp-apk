@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.sitelink.manager.data.config.ServerConfigManagerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-20T01:13:52" hostname="NITROX" time="0.095">
+<testsuite name="com.sitelink.manager.data.config.ServerConfigManagerTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-20T12:27:20" hostname="NITROX" time="0.016">
   <properties/>
-  <testcase name="testSaveAndRetrieveCredentials" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.09"/>
-  <testcase name="testUpdateSavedPassword" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.001"/>
-  <testcase name="testDeleteSavedCredentials" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.001"/>
-  <testcase name="testDefaultOfficeServerConfiguration" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.001"/>
-  <testcase name="testWhitespaceTrimmingOnSave" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.0"/>
+  <testcase name="testSaveAndRetrieveCredentials" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.014"/>
+  <testcase name="testUpdateSavedPassword" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.0"/>
+  <testcase name="testDeleteSavedCredentials" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.0"/>
+  <testcase name="testDefaultOfficeServerConfiguration" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.0"/>
+  <testcase name="testWhitespaceTrimmingOnSave" classname="com.sitelink.manager.data.config.ServerConfigManagerTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

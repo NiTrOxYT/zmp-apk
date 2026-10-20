@@ -1,6 +1,7 @@
 package com.sitelink.manager.ui.screens.terminal
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -126,5 +127,23 @@ class TerminalBufferEngineTest {
         )
         // Cursor at end appends '█' block
         assertEquals("$raw█", parsedWithCursorAtEnd.text)
+    }
+
+    @Test
+    fun testBufferLimitingAndGetAllText() {
+        // Create 20 lines without trailing blank line
+        repeat(20) { idx ->
+            if (idx > 0) engine.processChunk("\n")
+            engine.processChunk("Line $idx")
+        }
+        val allText = engine.getAllText()
+        assertTrue(allText.contains("Line 0"))
+        assertTrue(allText.contains("Line 19"))
+
+        // Limit to last 5 lines
+        val limited = engine.getFormattedText(maxDisplayLines = 5)
+        assertFalse(limited.contains("Line 0"))
+        assertTrue(limited.contains("Line 19"))
+        assertEquals(5, limited.lines().filter { it.isNotBlank() }.size)
     }
 }

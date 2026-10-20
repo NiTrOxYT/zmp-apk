@@ -1,12 +1,6 @@
 package com.sitelink.manager.ui.screens.terminal
 
 import android.widget.Toast
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -127,18 +121,6 @@ fun TerminalScreen(
     // Sentinel text field state to reliably detect keystrokes and backspace
     var inputState by remember { mutableStateOf(TextFieldValue(SENTINEL, TextRange(SENTINEL.length))) }
 
-    // Blinking cursor transition
-    val infiniteTransition = rememberInfiniteTransition(label = "cursor")
-    val cursorAlpha by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(500, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "cursorBlink"
-    )
-
     val isImeVisible = WindowInsets.isImeVisible
 
     // Auto-scroll terminal to bottom when keyboard opens
@@ -222,7 +204,8 @@ fun TerminalScreen(
                                 text = { Text("Copy All Output", color = Color.White) },
                                 onClick = {
                                     showCopyMenu = false
-                                    clipboardManager.setText(AnnotatedString(terminalBuffer))
+                                    val allOutput = viewModel.getAllOutput()
+                                    clipboardManager.setText(AnnotatedString(allOutput))
                                     Toast.makeText(context, "All output copied to clipboard", Toast.LENGTH_SHORT).show()
                                 }
                             )
@@ -313,13 +296,13 @@ fun TerminalScreen(
                     .verticalScroll(terminalScrollState)
             ) {
                 SelectionContainer {
-                    val parsedText = remember(terminalState, cursorAlpha, isTerminalActive) {
+                    val parsedText = remember(terminalState, isTerminalActive) {
                         AnsiColorParser.parse(
                             rawText = terminalState.formattedText,
                             defaultColor = TerminalForeground,
                             cursorRow = terminalState.cursorRow,
                             cursorCol = terminalState.cursorCol,
-                            cursorVisible = isTerminalActive && (cursorAlpha > 0.35f),
+                            cursorVisible = isTerminalActive,
                             cursorColor = Color(0xFF58A6FF)
                         )
                     }
@@ -479,8 +462,8 @@ fun TerminalScreen(
 
     // Modal Dialog to inspect and copy specific lines from the terminal
     if (showSelectLinesDialog) {
-        val lines = remember(terminalBuffer) {
-            terminalBuffer.lines().filter { it.isNotBlank() }
+        val lines = remember(terminalState) {
+            viewModel.getAllOutput().lines().filter { it.isNotBlank() }
         }
 
         AlertDialog(

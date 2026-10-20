@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sitelink.manager.data.repository.SiteRepository
 import com.sitelink.manager.data.repository.SshRepository
 import com.sitelink.manager.domain.model.Site
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -52,8 +53,8 @@ class TerminalViewModel(
             _site.value = siteObj
 
             if (siteObj != null) {
-                // Collect output stream and process terminal cursor/erase/carriage return codes
-                launch {
+                // Collect output stream and process terminal cursor/erase/carriage return codes in background
+                launch(Dispatchers.Default) {
                     sshRepository.terminalOutput.collect { chunk ->
                         terminalBufferEngine.processChunk(chunk)
                         val state = terminalBufferEngine.getState()
@@ -113,10 +114,12 @@ class TerminalViewModel(
         }
     }
 
+    fun getAllOutput(): String {
+        return terminalBufferEngine.getAllText()
+    }
+
     fun getLastLines(count: Int): String {
-        val lines = _terminalBuffer.value.lines()
-        val takeLines = if (lines.size > count) lines.takeLast(count) else lines
-        return takeLines.joinToString("\n")
+        return terminalBufferEngine.getFormattedText(count)
     }
 
     fun clearTerminalBuffer() {

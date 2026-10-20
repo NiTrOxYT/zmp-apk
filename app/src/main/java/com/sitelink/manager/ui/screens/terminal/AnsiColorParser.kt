@@ -129,31 +129,60 @@ object AnsiColorParser {
         isBold: Boolean,
         cursorColor: Color
     ): Int {
-        var currentVisualCol = startVisualCol
-        for (ch in textChunk) {
-            if (isCursorLine && currentVisualCol == cursorCol) {
-                // Inverted block cursor over character
-                pushStyle(
-                    SpanStyle(
-                        color = Color.Black,
-                        background = cursorColor,
-                        fontWeight = FontWeight.Bold
-                    )
+        val chunkLen = textChunk.length
+        val endVisualCol = startVisualCol + chunkLen
+
+        // Fast path: Not the cursor line, or cursor is outside this chunk
+        if (!isCursorLine || cursorCol < startVisualCol || cursorCol >= endVisualCol) {
+            pushStyle(
+                SpanStyle(
+                    color = currentColor,
+                    fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
                 )
-                append(ch)
-                pop()
-            } else {
-                pushStyle(
-                    SpanStyle(
-                        color = currentColor,
-                        fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
-                    )
-                )
-                append(ch)
-                pop()
-            }
-            currentVisualCol++
+            )
+            append(textChunk)
+            pop()
+            return endVisualCol
         }
-        return currentVisualCol
+
+        // Cursor IS inside this chunk!
+        val cursorOffset = cursorCol - startVisualCol
+
+        // 1. Text before cursor
+        if (cursorOffset > 0) {
+            pushStyle(
+                SpanStyle(
+                    color = currentColor,
+                    fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
+                )
+            )
+            append(textChunk.substring(0, cursorOffset))
+            pop()
+        }
+
+        // 2. Character under cursor (inverted block cursor)
+        pushStyle(
+            SpanStyle(
+                color = Color.Black,
+                background = cursorColor,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        append(textChunk[cursorOffset])
+        pop()
+
+        // 3. Text after cursor
+        if (cursorOffset + 1 < chunkLen) {
+            pushStyle(
+                SpanStyle(
+                    color = currentColor,
+                    fontWeight = if (isBold) FontWeight.Bold else FontWeight.Normal
+                )
+            )
+            append(textChunk.substring(cursorOffset + 1))
+            pop()
+        }
+
+        return endVisualCol
     }
 }

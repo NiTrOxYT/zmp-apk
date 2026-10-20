@@ -153,15 +153,24 @@ class TerminalBufferEngine(private val maxLines: Int = 2000) {
     }
 
     @Synchronized
-    fun getFormattedText(): String {
+    fun getFormattedText(maxDisplayLines: Int = 500): String {
+        val takeLines = if (lines.size > maxDisplayLines) lines.takeLast(maxDisplayLines) else lines
+        return takeLines.joinToString("\n") { it.toString() }
+    }
+
+    @Synchronized
+    fun getAllText(): String {
         return lines.joinToString("\n") { it.toString() }
     }
 
     @Synchronized
-    fun getState(): TerminalState {
+    fun getState(maxDisplayLines: Int = 500): TerminalState {
+        val totalLines = lines.size
+        val offset = if (totalLines > maxDisplayLines) totalLines - maxDisplayLines else 0
+        val adjustedCursorRow = maxOf(0, currentRow - offset)
         return TerminalState(
-            formattedText = getFormattedText(),
-            cursorRow = currentRow,
+            formattedText = getFormattedText(maxDisplayLines),
+            cursorRow = adjustedCursorRow,
             cursorCol = currentCol,
             revision = revision
         )
